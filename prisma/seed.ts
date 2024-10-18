@@ -1,22 +1,8 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
-import {
-  audienceData,
-  projectData,
-  taskAttributeData,
-  taskData,
-  taskTypeData,
-  userData,
-} from "./config";
+import { audiences, projects, taskAttributes, taskTypes, tasks, users } from "./config";
 
 const prisma = new PrismaClient();
-
-const audiences: Prisma.AudienceCreateInput[] = audienceData;
-const projects: Prisma.ProjectCreateInput[] = projectData;
-const taskAttributes: Prisma.TaskAttributeCreateInput[] = taskAttributeData;
-const tasks: Prisma.TaskCreateInput[] = taskData;
-const taskTypes: Prisma.TaskTypeCreateInput[] = taskTypeData;
-const users: Prisma.UserCreateInput[] = userData;
 
 async function main() {
   console.log("⛏️   Start seeding...");

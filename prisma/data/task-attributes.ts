@@ -1,4 +1,6 @@
-export const taskAttributeData = [
+import { Prisma } from "@prisma/client";
+
+export const taskAttributes: Prisma.TaskAttributeCreateInput[] = [
   {
     id: "attr-01",
     key: "preferredSize",

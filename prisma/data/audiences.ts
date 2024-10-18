@@ -1,4 +1,6 @@
-export const audienceData = [
+import { Prisma } from "@prisma/client";
+
+export const audiences: Prisma.AudienceCreateInput[] = [
   { id: "aud-01", title: "Prospective students" },
   { id: "aud-02", title: "Current students" },
   { id: "aud-03", title: "Faculty/staff" },

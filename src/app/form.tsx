@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Audience } from "@prisma/client";
+import { Audience, TaskType } from "@prisma/client";
 import { add, format, startOfToday } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -33,7 +33,10 @@ const FormSchema = z
     title: z.string().min(2, {
       message: "Title must be at least 2 characters.",
     }),
-    audiences: z.array(z.string()),
+    audiences: z.array(z.string().min(1)).min(1).nonempty("Please select at least one audience."),
+    otherAudience: z.string().min(2, {
+      message: "Audience must be at least 2 characters.",
+    }),
     purpose: z.string().min(2, {
       message: "Purpose must be at least 2 characters.",
     }),
@@ -46,6 +49,13 @@ const FormSchema = z
     }),
     printerQuote: z.boolean(),
     meeting: z.boolean(),
+    taskTypes: z
+      .array(z.string().min(1))
+      .min(1)
+      .nonempty("Please select at least one project type."),
+    otherTaskType: z.string().min(2, {
+      message: "Project type must be at least 2 characters.",
+    }),
     additionalInfo: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -70,23 +80,28 @@ const FormSchema = z
 
 interface ProjectRequestFormProps {
   audiences: Audience[];
+  taskTypes: TaskType[];
 }
 
-export function ProjectRequestForm({ audiences }: ProjectRequestFormProps) {
+export default function ProjectRequestForm({ audiences, taskTypes }: ProjectRequestFormProps) {
   const today = startOfToday();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: "",
-      audiences: [""],
+      audiences: [],
+      otherAudience: "",
       purpose: "",
       proofDate: add(today, { days: 7 }),
       completionDate: add(today, { days: 14 }),
       isMailed: false,
+      mailDate: undefined,
       budget: "",
       printerQuote: false,
       meeting: false,
+      taskTypes: [],
+      otherTaskType: "",
       additionalInfo: "",
     },
   });
@@ -106,13 +121,22 @@ export function ProjectRequestForm({ audiences }: ProjectRequestFormProps) {
     };
   });
 
+  const taskTypesList = taskTypes.map((taskType) => {
+    return {
+      label: taskType.title,
+      value: slugify(taskType.title),
+    };
+  });
+
+  const showOtherAudience = form.watch("audiences").includes("Other");
   const showMailDate = form.watch("isMailed");
+  const showOtherTaskType = form.watch("taskTypes").includes("Other");
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-2/3 space-y-6">
+        className="space-y-6">
         <FormField
           control={form.control}
           name="title"
@@ -141,16 +165,37 @@ export function ProjectRequestForm({ audiences }: ProjectRequestFormProps) {
                 <MultiSelect
                   options={audiencesList}
                   onValueChange={field.onChange}
+                  defaultValue={field.value}
                   placeholder="Select audiences"
+                  variant="inverted"
                   animation={2}
-                  {...field}
+                  maxCount={3}
                 />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {showOtherAudience && (
+          <FormField
+            control={form.control}
+            name="otherAudience"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Other audience</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Special list"
+                    {...field}
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
@@ -161,7 +206,7 @@ export function ProjectRequestForm({ audiences }: ProjectRequestFormProps) {
               <FormControl>
                 <Textarea
                   placeholder="Tell us the purpose of the project."
-                  className="resize-none"
+                  className="min-h-24 resize-none"
                   {...field}
                 />
               </FormControl>
@@ -253,7 +298,7 @@ export function ProjectRequestForm({ audiences }: ProjectRequestFormProps) {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-sm">Mailed</FormLabel>
+                <FormLabel className="text-sm">Mailing</FormLabel>
                 <FormDescription>Does this need to be mailed?</FormDescription>
               </div>
               <FormControl>
@@ -305,6 +350,126 @@ export function ProjectRequestForm({ audiences }: ProjectRequestFormProps) {
             )}
           />
         )}
+
+        <FormField
+          control={form.control}
+          name="budget"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Budget</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="75"
+                  {...field}
+                />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="printerQuote"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-sm">Printer quote</FormLabel>
+                <FormDescription>
+                  Do you need a quote from the printer before we begin?
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="meeting"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-sm">Meeting</FormLabel>
+                <FormDescription>Would you like to meet with OMC before we begin? </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="taskTypes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project types</FormLabel>
+              <FormControl>
+                <MultiSelect
+                  options={taskTypesList}
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  placeholder="Select types of projects"
+                  variant="inverted"
+                  animation={2}
+                  maxCount={3}
+                />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {showOtherTaskType && (
+          <FormField
+            control={form.control}
+            name="otherTaskType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Other project type</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Build a robot"
+                    {...field}
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        <FormField
+          control={form.control}
+          name="additionalInfo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Additional information</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Any thing else you would like to add."
+                  className="min-h-24 resize-none"
+                  {...field}
+                />
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button type="submit">Submit</Button>
       </form>

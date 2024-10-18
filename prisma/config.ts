@@ -1,8 +1,8 @@
-import { audienceData } from "./data/audiences";
-import { projectData } from "./data/projects";
-import { taskAttributeData } from "./data/task-attributes";
-import { taskTypeData } from "./data/task-types";
-import { taskData } from "./data/tasks";
-import { userData } from "./data/users";
+import { audiences } from "./data/audiences";
+import { projects } from "./data/projects";
+import { taskAttributes } from "./data/task-attributes";
+import { taskTypes } from "./data/task-types";
+import { tasks } from "./data/tasks";
+import { users } from "./data/users";
 
-export { audienceData, projectData, taskAttributeData, taskData, taskTypeData, userData };
+export { audiences, projects, taskAttributes, tasks, taskTypes, users };

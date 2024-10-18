@@ -1,4 +1,6 @@
-export const taskTypeData = [
+import { Prisma } from "@prisma/client";
+
+export const taskTypes: Prisma.TaskTypeCreateInput[] = [
   { id: "type-01", title: "Banner" },
   { id: "type-02", title: "Booklet" },
   { id: "type-03", title: "Brochure" },

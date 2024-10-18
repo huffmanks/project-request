@@ -1,8 +1,9 @@
+import { Prisma } from "@prisma/client";
 import { add, startOfToday } from "date-fns";
 
 const today = startOfToday();
 
-export const projectData = [
+export const projects: Prisma.ProjectCreateInput[] = [
   {
     id: "proj-01",
     title: "Project One",
@@ -17,7 +18,7 @@ export const projectData = [
     approver: { connect: { id: "user-01" } },
     contact: { connect: { id: "user-01" } },
     invoice: { connect: { id: "user-01" } },
-    audience: {
+    audiences: {
       connect: [{ id: "aud-01" }, { id: "aud-02" }],
     },
   },

@@ -1,4 +1,6 @@
-export const taskData = [
+import { Prisma } from "@prisma/client";
+
+export const tasks: Prisma.TaskCreateInput[] = [
   {
     id: "task-01",
     project: {
